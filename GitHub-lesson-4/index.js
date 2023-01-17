@@ -1,99 +1,371 @@
-function formatDate(date) {
-  let days = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
-  let months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="Andrea" />
+    <meta
+      name="description"
+      content="A minimalistic weather dashboard that gives you a complete overview of current weather conditions in your location and beyond. Dashboard with light/dark functionality was built with Bootstrap & CSS for styling, JavaScript for functionality, and API for live weather data."
+    />
+    <meta property="og:title" content="Weather App />
+    <meta
+      property="og:description"
+      content="A minimalistic weather dashboard that gives you a complete overview of current weather conditions in your location and beyond."
+    />
+    <meta
+      property="og:image"
+      content="https://raw.githubusercontent.com/aniqatc/directory/main/assets/weather-public.png"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@aniqatc" />
+    <meta
+      name="twitter:image"
+      content="https://raw.githubusercontent.com/aniqatc/directory/main/assets/weather-public.png"
+    />
+    <meta name="twitter:image:alt" content="Hero section of website" />
+    <title>Weather App</title>
 
-  let currentYear = date.getFullYear();
-  let currentDay = days[date.getDay()];
-  let currentMonth = months[date.getMonth()];
-  let currentDate = date.getDate();
-  let hours = date.getHours();
-  if (hours < 10) {
-    hours = `0${hours}`;
-  }
-  let minutes = date.getMinutes();
-  if (minutes < 10) {
-    minutes = `0${minutes}`;
-  }
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi"
+      crossorigin="anonymous"
+    />
 
-  return `${currentDay}, ${currentMonth} ${currentDate}, ${currentYear} ${hours}:${minutes}`;
-}
-function displayWeatherCondition(response) {
-  document.querySelector("#city").innerHTML = response.data.name;
-  document.querySelector("#temperature").innerHTML = Math.round(
-    response.data.main.temp
-  );
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Amita:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="/assets/favicon.png" type="image/x-icon" rel="icon" />
+    <link href="styles.css" rel="stylesheet" type="text/css" />
+    <script
+      src="https://kit.fontawesome.com/50cde61edc.js"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <header class="container text-md-start my-2 mt-3">
+        <div class="row align-items-center">
+          <h1 class="col-md-6">Weather App</h1>
+          <div class="w-100 d-md-none d-block"></div>
+          <form class="input-group col p-1 search-form">
+            <button
+              class="btn btn-outline-primary"
+              id="geolocation-btn"
+              type="button"
+            >
+              <i class="fa-solid fa-location-arrow"></i>
+            </button>
+            <input
+              type="search"
+              placeholder="Search City..."
+              class="form-control"
+              id="search-input"
+              autocapitalize="on"
+              autocomplete="address-level2"
+            /><button
+              type="submit"
+              class="btn btn-outline-primary me-2 search-btn"
+            >
+              <i class="fa-solid fa-magnifying-glass-location"></i>
+            </button>
+          </form>
+          <div
+            class="form-check form-switch ps-2 align-self-center col-1 me-4 me-md-1"
+          >
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="flexSwitchCheckChecked"
+              role="switch"
+            />
+          </div>
+        </div>
+      </header>
+      <div class="row d-flex">
+        <div class="local-overview col ms-lg-4 mt-4">
+          <div class="mx-3 my-4">
+            <h2>Forecast in <span id="location"></span></h2>
+            <h3 id="today"></h3>
+          </div>
+          <div class="container flex-md-row flex-column">
+            <div class="row">
+              <section class="temp-overview col-lg-5">
+                <div class="current-weather card">
+                  <div class="card-body">
+                    <div class="d-flex">
+                      <h1 class="flex-grow-1">
+                        <span id="temp-now"></span>°<span class="fahrenheit"
+                          >F
+                        </span>
+                        <span class="toggle-temps"
+                          >/ <a href="#" class="celsius">C</a></span
+                        >
+                      </h1>
 
-  document.querySelector("#humidity").innerHTML = response.data.main.humidity;
-  document.querySelector("#wind").innerHTML = Math.round(
-    response.data.wind.speed
-  );
-}
+                      <h3 class="text-end pt-2">
+                        <small>High</small>
+                        <span class="temps" id="high-temp"></span>°<span
+                          class="fahrenheit"
+                          >F</span
+                        >
+                        <br />
 
-function searchCity(city) {
-  let apiKey = "5f472b7acba333cd8a035ea85a0d4d4c";
-  let apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
-  axios.get(apiUrl).then(displayWeatherCondition);
-}
+                        <small>Low </small>
+                        <span class="temps" id="low-temp">30</span>°<span
+                          class="fahrenheit"
+                          >F</span
+                        >
+                      </h3>
+                    </div>
+                    <br /><br />
+                    <div class="d-flex">
+                      <div class="flex-grow-1">
+                        <p>
+                          <span id="description-temp">Mostly Sunny</span><br />
+                          Feels like
+                          <span class="temps" id="feels-like"></span>°<span
+                            class="fahrenheit"
+                            >F</span
+                          >
+                          <br />
+                          <small id="condition-msg"></small>
+                        </p>
+                      </div>
+                      <div>
+                        <img
+                          src=""
+                          width="85px"
+                          class="weather-icon default-main-icon"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <div class="w-100 d-lg-none d-block"></div>
+              <section
+                class="temp-details col-lg-4 col-md-5 mt-3 mt-md-2 mt-lg-0"
+              >
+                <div class="card p-1 initial">
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex">
+                      <strong class="flex-grow-1">Visibility </strong>
+                      <span id="visibility">0</span>km
+                      <i class="fa-solid fa-eye-slash align-self-center"></i>
+                    </li>
+                    <li class="list-group-item d-flex">
+                      <strong class="flex-grow-1">Dew Point </strong
+                      ><span id="dew-point" class="temps"></span>°<span
+                        class="fahrenheit"
+                        >F</span
+                      >
+                      <i class="fa-solid fa-droplet align-self-center"></i>
+                    </li>
+                    <li class="list-group-item d-flex">
+                      <strong class="flex-grow-1">Wind </strong>
+                      <span id="wind">0</span>
+                      <span id="wind-unit">mph</span>
+                      <i class="fa-solid fa-wind align-self-center"></i>
+                    </li>
 
-function handleSubmit(event) {
-  event.preventDefault();
-  let city = document.querySelector("#city-input").value;
-  searchCity(city);
-}
+                    <li class="list-group-item d-flex">
+                      <strong class="flex-grow-1"> Humidity</strong>
+                      <span id="humidity">0</span>%
+                      <i class="fa-solid fa-water align-self-center"></i>
+                    </li>
 
-function searchLocation(position) {
-  let apiKey = "093d81682fb970dd22ac60f43fabc474";
-  let apiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${position.coords.latitude}&lon=${position.coords.longitude}&appid=${apiKey}&units=metric`;
+                    <li class="list-group-item d-flex">
+                      <strong class="flex-grow-1">Cloudiness </strong>
+                      <span id="clouds"></span>%
+                      <i class="fa-solid fa-cloud align-self-center"></i>
+                    </li>
+                  </ul>
+                </div>
+              </section>
+              <div class="w-100 d-md-none d-block"></div>
+              <section class="sun-time col-md mt-3 mt-md-2 mt-lg-0">
+                <div class="card">
+                  <img
+                    src="/assets/day-landscape.png"
+                    class="card-img w-100"
+                    id="scenery"
+                  />
+                  <div class="card-img-overlay text-center">
+                    <i class="fa-solid fa-sun"></i>
+                    <h3 lass="fw-light">Sunrise</h3>
+                    <h2 id="sunrise-time"></h2>
+                    <br />
+                    <i class="fa-solid fa-moon"></i>
+                    <h3 lass="fw-lighter">Sunset</h3>
+                    <h2 id="sunset-time"></h2>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+          <section
+            class="full-forecast d-flex justify-content-md-around my-4"
+          ></section>
+        </div>
+        <div class="w-100 d-lg-none d-block mb-2"></div>
+        <section
+          class="global-overview mx-lg-4 col-xl-3 mt-4 flex-lg-shrink-1 me-lg-0 pb-1"
+        >
+          <div class="p-1 mt-3">
+            <h2 class="mx-1 mb-3">Forecast in Other <strong>Cities</strong></h2>
+            <hr />
+            <div class="d-flex flex-column">
+              <div class="container global-item align-items-center">
+                <div
+                  class="row align-items-center flex-nowrap justify-content-center"
+                >
+                  <p class="col">
+                    <b class="global-name"></b><br /><small
+                      class="country-name"
+                    ></small>
+                  </p>
+                  <img
+                    src="/assets/loading.svg"
+                    height="50px"
+                    class="col-3 weather-icon global-icon"
+                  />
+                  <p class="text-end col">
+                    <strong
+                      ><span class="temps global-temps"></span>°<span
+                        class="fahrenheit"
+                        >F
+                      </span></strong
+                    ><br /><small class="global-descriptions"></small>
+                  </p>
+                </div>
+              </div>
+              <hr />
+              <div class="container global-item align-items-center">
+                <div
+                  class="row align-items-center flex-nowrap justify-content-center"
+                >
+                  <p class="col">
+                    <b class="global-name"></b><br /><small
+                      class="country-name"
+                    ></small>
+                  </p>
+                  <img
+                    src="/assets/loading.svg"
+                    height="50px"
+                    class="col-3 weather-icon global-icon"
+                  />
+                  <p class="text-end col">
+                    <strong
+                      ><span class="temps global-temps"></span>°<span
+                        class="fahrenheit"
+                        >F
+                      </span></strong
+                    ><br /><small class="global-descriptions"></small>
+                  </p>
+                </div>
+              </div>
+              <hr />
+              <div class="container global-item align-items-center">
+                <div
+                  class="row align-items-center flex-nowrap justify-content-center"
+                >
+                  <p class="col">
+                    <b class="global-name"></b><br /><small
+                      class="country-name"
+                    ></small>
+                  </p>
+                  <img
+                    src="/assets/loading.svg"
+                    height="50px"
+                    class="col-3 weather-icon global-icon"
+                  />
+                  <p class="text-end col">
+                    <strong
+                      ><span class="temps global-temps"></span>°<span
+                        class="fahrenheit"
+                        >F
+                      </span></strong
+                    ><br /><small class="global-descriptions"></small>
+                  </p>
+                </div>
+              </div>
+              <hr />
+              <div class="container global-item align-items-center">
+                <div
+                  class="row align-items-center flex-nowrap justify-content-center"
+                >
+                  <p class="col">
+                    <b class="global-name"></b><br /><small
+                      class="country-name"
+                    ></small>
+                  </p>
+                  <img
+                    src="/assets/loading.svg"
+                    height="50px"
+                    class="col-3 weather-icon global-icon"
+                  />
+                  <p class="text-end col">
+                    <strong
+                      ><span class="temps global-temps"></span>°<span
+                        class="fahrenheit"
+                        >F
+                      </span></strong
+                    ><br /><small class="global-descriptions"></small>
+                  </p>
+                </div>
+              </div>
+              <hr />
+              <div class="container global-item align-items-center">
+                <div
+                  class="row align-items-center flex-nowrap justify-content-center"
+                >
+                  <p class="col">
+                    <b class="global-name"></b><br /><small
+                      class="country-name"
+                    ></small>
+                  </p>
+                  <img
+                    src="/assets/loading.svg"
+                    height="50px"
+                    class="col-3 weather-icon global-icon"
+                  />
+                  <p class="text-end col">
+                    <strong
+                      ><span class="temps global-temps"></span>°<span
+                        class="fahrenheit"
+                        >F
+                      </span></strong
+                    ><br /><small class="global-descriptions"></small>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
 
-  axios.get(apiUrl).then(displayWeatherCondition);
-}
+      <footer class="text-center my-3">
+        <i class="fa-solid fa-code"></i>
+        Designed & Coded by
+        <strong
+          ><a
+            href="https://www.instagram.com/andreasondrea/"
+            target="_blank"
+            rel="noreferrer"
+            id="credits"
+            >Andrea S.</a
+          >
+        </strong>
+      </footer>
+    </div>
+    <script src="main.js"></script>
+  </body>
+</html>
 
-function getCurrentLocation(event) {
-  event.preventDefault();
-  navigator.geolocation.getCurrentPosition(searchLocation);
-}
-
-function convertToFahrenheit(event) {
-  event.preventDefault();
-  let temperatureElement = document.querySelector("#temperature");
-  temperatureElement.innerHTML = 66;
-}
-
-function convertToCelsius(event) {
-  event.preventDefault();
-  let temperatureElement = document.querySelector("#temperature");
-  temperatureElement.innerHTML = 19;
-}
-
-let dateElement = document.querySelector("#date");
-let currentTime = new Date();
-dateElement.innerHTML = formatDate(currentTime);
-
-let searchForm = document.querySelector("#search-form");
-searchForm.addEventListener("submit", handleSubmit);
-
-let currentLocationButton = document.querySelector("#current-location-button");
-currentLocationButton.addEventListener("click", getCurrentLocation);
-
-searchCity("New York");
